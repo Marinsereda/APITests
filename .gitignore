@@ -1,0 +1,8 @@
+.idea/
+pom.xml
+chromedriver.exe
+target/
+apiTesting.iml
+/usr/bin/bash: wq: command not found
+/usr/bin/bash: qw: command not found
+/usr/bin/bash: wq: command not found
