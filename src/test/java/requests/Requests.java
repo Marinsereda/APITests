@@ -1,23 +1,23 @@
 package requests;
 
 import apiTesting.TestData;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.*;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,9 +26,17 @@ public class Requests {
 
    public static String userId = "";
     String json = "{\"id\":77,\"name\":\"Test-MF\"}";
-    String json1 = "{\"id\":130,\"name\":\"Test-MF_Put\"}";
+    static String json1 = "{\"id\":130,\"name\":\"Test-MF_Put\"}";
+
+    static RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(20).build();
+
+
 
     static CloseableHttpClient httpclient = HttpClients.createDefault();// client which will send requests to API
+//    static HttpClient httpclient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();// client which will send requests to API
+
+
+
 
     protected static String findUserID(String data) {
         Matcher m = Pattern.compile("\"id\":(\\d+)").matcher(data);
@@ -38,8 +46,8 @@ public class Requests {
         return userId;
     }
 
-    public static String getUserInfo( String id) throws IOException {
-        String data = sendGet().get("entityBody");
+    public static String getUserInfo( String id, String URL) throws IOException {
+        String data = sendGet(URL).get("entityBody");
 
         Pattern findUserInfo = Pattern.compile("\\{[^\\{\\}]*\"id\":\"" + id + "\"[^\\{\\}]*\\}");
         Matcher m = findUserInfo.matcher(data);
@@ -75,8 +83,8 @@ public class Requests {
 
 //    @Test
 
-    public static HashMap<String, String> sendGet() throws IOException {
-        HttpGet httpGet = new HttpGet(TestData.url);
+    public static HashMap<String, String> sendGet(String URL) throws IOException {
+        HttpGet httpGet = new HttpGet(URL);
         HttpResponse response = httpclient.execute(httpGet);
 //        String entityHeaders = response.getEntity().toString();
 //        String entityBody = EntityUtils.toString(response.getEntity());
@@ -116,13 +124,13 @@ public class Requests {
     }
 
     //    @Test(dataProvider = "saveUserData" )
-    public static HashMap<String, String> sendPut(String data) throws IOException {
-        HttpPut httpPut = new HttpPut(TestData.url );
-
-//        httpPut.addHeader("Content-type", "application/json");
-        httpPut.setEntity(new StringEntity('{' + data + '}', "UTF-8"));
+    @Test
+    public static HashMap<String, String> sendPut(String userIdPut, String data) throws IOException  {
+        HttpPut httpPut = new HttpPut(TestData.url+userIdPut );
+        httpPut.setEntity(new StringEntity(data, "UTF-8"));
 
         HttpResponse response = httpclient.execute(httpPut);
+        System.out.println(getEntityData(response).get("entityBody"));
 
         return getEntityData(response);
 
@@ -130,17 +138,23 @@ public class Requests {
 
 
     @Test
-    public void sendDelete() throws IOException {
-        HttpDelete request = new HttpDelete(TestData.url);
-        request.setHeader("Accept", "application/json");
+    public static HttpResponse sendDelete(String userId) throws IOException {
+        HttpDelete request = new HttpDelete(TestData.url+userId);
+
         request.setHeader("Content-type", "application/json");
-        System.out.println(httpclient.execute(request).getStatusLine());//no content
+//        System.out.println(httpclient.execute(request).getStatusLine().getStatusCode()==(204));//no content
 
-        System.out.println(request.getRequestLine());
 
-//        ((HttpResponse) request).setEntity(new StringEntity(json, "UTF-8"));
-//        getEntityData(httpclient.execute(request));
+        return httpclient.execute(request);
     }
+
+    public static HttpResponse sendGetNewPort(String URL) throws IOException {
+        HttpGet httpGet = new HttpGet(URL);
+        HttpResponse response = httpclient.execute(httpGet);
+
+        return response;
+    }
+
 
 
 }
