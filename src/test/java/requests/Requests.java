@@ -25,16 +25,11 @@ import java.util.regex.Pattern;
 public class Requests {
 
    public static String userId = "";
-    String json = "{\"id\":77,\"name\":\"Test-MF\"}";
-    static String json1 = "{\"id\":130,\"name\":\"Test-MF_Put\"}";
 
-    static RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(20).build();
+    static RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(30*1000).build();//get from Internet - need explanation
+    //    static HttpClient httpclient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
 
-
-
-    static CloseableHttpClient httpclient = HttpClients.createDefault();// client which will send requests to API
-//    static HttpClient httpclient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();// client which will send requests to API
-
+    static CloseableHttpClient httpclient = HttpClients.createDefault();// client which send requests to API
 
 
 
@@ -66,37 +61,15 @@ public class Requests {
         httpPost.setHeader("Accept", "application/json");
         httpPost.setHeader("Content-type", "application/json");
 
-
         HttpResponse response = httpclient.execute(httpPost);
 
-//        String entityHeaders = response.getEntity().toString();
-//        String entityBody = EntityUtils.toString(response.getEntity());
-//
-//    System.out.println(entityHeaders);
-//    System.out.println(entityBody);
-//    System.out.println(findUserID(entityBody));
-
-        Assert.assertTrue(response.getStatusLine().getStatusCode() == (200)); //passed!
         return getEntityData(response);
     }
 
 
-//    @Test
-
     public static HashMap<String, String> sendGet(String URL) throws IOException {
         HttpGet httpGet = new HttpGet(URL);
         HttpResponse response = httpclient.execute(httpGet);
-//        String entityHeaders = response.getEntity().toString();
-//        String entityBody = EntityUtils.toString(response.getEntity());
-//
-//        System.out.println(entityHeaders);
-//        System.out.println(entityBody);
-//        System.out.println(entityHeaders.contains("application/json"));
-
-
-//        Assert.assertTrue(response.getStatusLine().getStatusCode()==(200)); //passed!
-////        Assert.assertFalse(response.getHeaders("Content-type").toString().contains("application/json"));//passed! - false
-//        Assert.assertFalse(entityHeaders.contains("application/json"));//passed! - false
 
         return getEntityData(response);
     }
@@ -118,13 +91,6 @@ public class Requests {
         return entityData;
     }
 
-    @DataProvider
-    public Object[][] saveUserData() {
-        return new Object[][]{{"\"role\": \"Administrator\""}};
-    }
-
-    //    @Test(dataProvider = "saveUserData" )
-    @Test
     public static HashMap<String, String> sendPut(String userIdPut, String data) throws IOException  {
         HttpPut httpPut = new HttpPut(TestData.url+userIdPut );
         httpPut.setEntity(new StringEntity(data, "UTF-8"));
@@ -133,7 +99,6 @@ public class Requests {
         System.out.println(getEntityData(response).get("entityBody"));
 
         return getEntityData(response);
-
     }
 
 
@@ -141,9 +106,8 @@ public class Requests {
     public static HttpResponse sendDelete(String userId) throws IOException {
         HttpDelete request = new HttpDelete(TestData.url+userId);
 
-        request.setHeader("Content-type", "application/json");
+        request.setHeader("Content-type", "application/json");//is it important to set header ind DELETE request?
 //        System.out.println(httpclient.execute(request).getStatusLine().getStatusCode()==(204));//no content
-
 
         return httpclient.execute(request);
     }

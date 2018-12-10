@@ -1,5 +1,6 @@
-package apiTesting;
+package lessonExample;
 
+import apiTesting.TestData;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

@@ -1,12 +1,11 @@
-package apiTesting;
+package lessonExample;
 
-import org.apache.http.HttpRequest;
+import lessonExample.ApiSteps;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
