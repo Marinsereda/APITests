@@ -1,6 +1,7 @@
 package requests;
 
 import apiTesting.TestData;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -12,6 +13,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -26,10 +28,18 @@ public class Requests {
 
    public static String userId = "";
 
-    static RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(30*1000).build();//get from Internet - need explanation
+    static RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(5000)
+            .setSocketTimeout(5000).build();//get from Internet - need explanation
     //    static HttpClient httpclient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
 
-    static CloseableHttpClient httpclient = HttpClients.createDefault();// client which send requests to API
+    static CloseableHttpClient httpclient = HttpClients.createDefault();// client which send requests to APIfinal
+    //request.setConfig(requestConfig);
+
+    Header []headers = new Header[2];
+
+
+
+
 
 
 
@@ -41,16 +51,23 @@ public class Requests {
         return userId;
     }
 
-    public static String getUserInfo( String id, String URL) throws IOException {
+    public static Boolean getUserInfo( String id, String URL) throws IOException {
         String data = sendGet(URL).get("entityBody");
 
-        Pattern findUserInfo = Pattern.compile("\\{[^\\{\\}]*\"id\":\"" + id + "\"[^\\{\\}]*\\}");
-        Matcher m = findUserInfo.matcher(data);
-        if (m.find()) {
-            return m.group();
-        } else {
-            return "No data found.";
-        }
+        if(data.contains(id)){
+            System.out.println( "Id is found."+ id);
+           return true;}
+        else{
+            System.out.println( "No data found.");
+            return false;}
+
+//        Pattern findUserInfo = Pattern.compile("\\{[^\\{\\}]*\"id\":\"" + id + "\"[^\\{\\}]*\\}");
+//        Matcher m = findUserInfo.matcher(data);
+//        if (m.find()) {
+//            return m.group();
+//        } else {
+//            return "No data found.";
+//        }
     }
 
 
@@ -69,6 +86,11 @@ public class Requests {
 
     public static HashMap<String, String> sendGet(String URL) throws IOException {
         HttpGet httpGet = new HttpGet(URL);
+        httpGet.setHeader("Content-type", "application/json");
+
+//        if (headers != null){
+//            httpGet.setHeaders(headers);
+//        }
         HttpResponse response = httpclient.execute(httpGet);
 
         return getEntityData(response);
@@ -80,12 +102,14 @@ public class Requests {
 
         String entityHeaders = response.getEntity().toString();
         String entityBody = EntityUtils.toString(response.getEntity());
+        String statusCode = String.valueOf(response.getStatusLine().getStatusCode());
 
         System.out.println(entityHeaders);
         System.out.println(entityBody);
 
         entityData.put("entityHeaders", entityHeaders);
         entityData.put("entityBody", entityBody);
+        entityData.put("statusCode", statusCode);
         userId = findUserID(entityBody);
 
         return entityData;
@@ -93,6 +117,10 @@ public class Requests {
 
     public static HashMap<String, String> sendPut(String userIdPut, String data) throws IOException  {
         HttpPut httpPut = new HttpPut(TestData.url+userIdPut );
+        httpPut.setConfig(requestConfig);
+
+//        httpPut.setHeader("Accept", "application/json");
+        httpPut.setHeader("Content-type", "application/json");
         httpPut.setEntity(new StringEntity(data, "UTF-8"));
 
         HttpResponse response = httpclient.execute(httpPut);
@@ -106,7 +134,7 @@ public class Requests {
     public static HttpResponse sendDelete(String userId) throws IOException {
         HttpDelete request = new HttpDelete(TestData.url+userId);
 
-        request.setHeader("Content-type", "application/json");//is it important to set header ind DELETE request?
+//        request.setHeader("Content-type", "application/json");//is it important to set header ind DELETE request?
 //        System.out.println(httpclient.execute(request).getStatusLine().getStatusCode()==(204));//no content
 
         return httpclient.execute(request);
